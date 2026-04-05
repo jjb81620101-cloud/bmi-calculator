@@ -444,6 +444,75 @@
     const bmiBarMarker = document.getElementById('bmiBarMarker');
     const resetBtn = document.getElementById('resetBtn');
 
+    // Security: Rate limiting & debounce
+    let lastCalcTime = 0;
+    const RATE_LIMIT_MS = 1000; // 1 second between calls
+    let debounceTimer = null;
+    const DEBOUNCE_MS = 300;
+
+    // Security: Max bounds
+    const MAX_HEIGHT = 300; // cm
+    const MAX_WEIGHT = 500; // kg
+
+    // Security: Toast system (replaces alert())
+    function showToast(message, type = 'error') {
+      const existing = document.getElementById('toast');
+      if (existing) existing.remove();
+
+      const toast = document.createElement('div');
+      toast.id = 'toast';
+      toast.textContent = message;
+      toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: ${type === 'error' ? '#ff1744' : '#00e676'};
+        color: white;
+        padding: 14px 24px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 9999;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        animation: toastIn 0.3s ease;
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'toastOut 0.3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    }
+
+    // Inject toast animation styles
+    const toastStyle = document.createElement('style');
+    toastStyle.textContent = `
+      @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+      @keyframes toastOut { from { opacity: 1; transform: translateX(-50%) translateY(0); } to { opacity: 0; transform: translateX(-50%) translateY(-20px); } }
+    `;
+    document.head.appendChild(toastStyle);
+
+    function sanitizeInput(value) {
+      // Remove non-numeric characters except decimal point and minus
+      const sanitized = String(value).replace(/[^0-9.\-]/g, '');
+      return parseFloat(sanitized);
+    }
+
+    function validateInput(height, weight) {
+      // Check positivity
+      if (!height || height <= 0 || !weight || weight <= 0) {
+        return { valid: false, error: '請輸入有效的身高和體重' };
+      }
+      // Check max bounds
+      if (height > MAX_HEIGHT) {
+        return { valid: false, error: `身高不可超過 ${MAX_HEIGHT} cm` };
+      }
+      if (weight > MAX_WEIGHT) {
+        return { valid: false, error: `體重不可超過 ${MAX_WEIGHT} kg` };
+      }
+      return { valid: true };
+    }
+
     function getCategory(bmi) {
       if (bmi < 18.5) return { label: '體重過輕', class: 'under', color: '#00c6ff' };
       if (bmi < 24) return { label: '體重正常', class: 'normal', color: '#00e676' };
@@ -452,18 +521,32 @@
     }
 
     function getBarPosition(bmi) {
-      // Scale: 10 to 40 BMI mapped to 0%-100%
       if (bmi <= 10) return 0;
       if (bmi >= 40) return 100;
       return ((bmi - 10) / 30) * 100;
     }
 
     function calculate() {
-      const h = parseFloat(heightInput.value);
-      const w = parseFloat(weightInput.value);
+      const now = Date.now();
 
-      if (!h || !w || h <= 0 || w <= 0) {
-        alert('請輸入有效的身高和體重');
+      // Security: Rate limiting
+      if (now - lastCalcTime < RATE_LIMIT_MS) {
+        showToast('請稍後再試', 'error');
+        return;
+      }
+      lastCalcTime = now;
+
+      // Security: Sanitize inputs
+      const rawHeight = heightInput.value;
+      const rawWeight = weightInput.value;
+
+      const h = sanitizeInput(rawHeight);
+      const w = sanitizeInput(rawWeight);
+
+      // Validate inputs
+      const validation = validateInput(h, w);
+      if (!validation.valid) {
+        showToast(validation.error, 'error');
         return;
       }
 
@@ -478,13 +561,18 @@
 
       const barPos = getBarPosition(bmi);
 
-      // Trigger bar animation
       requestAnimationFrame(() => {
         bmiBarFill.style.width = barPos + '%';
         bmiBarMarker.style.left = barPos + '%';
       });
 
       resultSection.classList.add('show');
+    }
+
+    function debouncedCalculate() {
+      // Security: Debounce
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(calculate, DEBOUNCE_MS);
     }
 
     function reset() {
@@ -496,11 +584,12 @@
       heightInput.focus();
     }
 
-    calcBtn.addEventListener('click', calculate);
+    // Security: Debounced click handler
+    calcBtn.addEventListener('click', debouncedCalculate);
     resetBtn.addEventListener('click', reset);
 
     heightInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') weightInput.focus(); });
-    weightInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') calculate(); });
+    weightInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') debouncedCalculate(); });
   </script>
 </body>
 </html>

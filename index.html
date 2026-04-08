@@ -7,355 +7,172 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg-primary: #0f0f1a;
-      --bg-card: #1a1a2e;
-      --bg-input: #16213e;
-      --accent-blue: #4facfe;
-      --accent-purple: #b470f7;
-      --text-primary: #ffffff;
-      --text-secondary: #a0a0b8;
-      --border-glow: rgba(79, 172, 254, 0.3);
-      --result-under: #00c6ff;
-      --result-normal: #00e676;
-      --result-over: #ff9100;
-      --result-obese: #ff1744;
+      --bg-primary: #0f0f1a; --bg-card: #1a1a2e; --bg-input: #16213e;
+      --accent-blue: #4facfe; --accent-purple: #b470f7;
+      --text-primary: #ffffff; --text-secondary: #a0a0b8;
+      --result-under: #00c6ff; --result-normal: #00e676;
+      --result-over: #ff9100; --result-obese: #ff1744;
+      --toast-error: #ff1744; --toast-success: #00e676;
     }
-
     body {
-      font-family: 'Noto Sans TC', sans-serif;
-      background: var(--bg-primary);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      overflow-x: hidden;
+      font-family: 'Noto Sans TC', sans-serif; background: var(--bg-primary);
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 20px; overflow-x: hidden;
     }
-
     body::before {
-      content: '';
-      position: fixed;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: 
-        radial-gradient(ellipse at 20% 20%, rgba(79, 172, 254, 0.08) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 80%, rgba(180, 112, 247, 0.08) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 50%, rgba(79, 172, 254, 0.03) 0%, transparent 70%);
-      z-index: 0;
-      animation: bgShift 15s ease-in-out infinite alternate;
+      content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
+      background:
+        radial-gradient(ellipse at 20% 20%, rgba(79,172,254,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(180,112,247,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(79,172,254,0.03) 0%, transparent 70%);
+      z-index: 0; animation: bgShift 15s ease-in-out infinite alternate;
     }
-
     @keyframes bgShift {
-      0% { transform: translate(0, 0) rotate(0deg); }
-      100% { transform: translate(-3%, -3%) rotate(3deg); }
+      0% { transform: translate(0,0) rotate(0deg); }
+      100% { transform: translate(-3%,-3%) rotate(3deg); }
     }
 
-    .container {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      max-width: 520px;
+    /* ===== TOAST ===== */
+    .toast-container {
+      position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
+      z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+    }
+    .toast {
+      background: var(--bg-card); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px; padding: 14px 20px; display: flex; align-items: center;
+      gap: 10px; min-width: 280px; max-width: 400px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      animation: toastIn 0.3s cubic-bezier(0.4,0,0.2,1); pointer-events: auto;
+    }
+    .toast.toast-out { animation: toastOut 0.3s cubic-bezier(0.4,0,0.2,1) forwards; }
+    .toast-icon { font-size: 20px; flex-shrink: 0; }
+    .toast-message { font-size: 14px; font-weight: 500; color: var(--text-primary); line-height: 1.4; }
+    .toast.toast-error { border-color: rgba(255,23,68,0.4); }
+    .toast.toast-error .toast-icon { color: var(--toast-error); }
+    .toast.toast-success { border-color: rgba(0,230,118,0.4); }
+    .toast.toast-success .toast-icon { color: var(--toast-success); }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes toastOut {
+      from { opacity: 1; transform: translateY(0) scale(1); }
+      to { opacity: 0; transform: translateY(-20px) scale(0.95); }
     }
 
+    .container { position: relative; z-index: 1; width: 100%; max-width: 520px; }
     .card {
-      background: var(--bg-card);
-      border-radius: 24px;
-      padding: 48px 40px;
+      background: var(--bg-card); border-radius: 24px; padding: 48px 40px;
       border: 1px solid rgba(255,255,255,0.06);
-      box-shadow: 
-        0 25px 60px rgba(0,0,0,0.5),
-        0 0 80px rgba(79, 172, 254, 0.06),
-        inset 0 1px 0 rgba(255,255,255,0.05);
-      backdrop-filter: blur(20px);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 80px rgba(79,172,254,0.06),
+        inset 0 1px 0 rgba(255,255,255,0.05); backdrop-filter: blur(20px);
     }
-
-    .header {
-      text-align: center;
-      margin-bottom: 40px;
-    }
-
+    .header { text-align: center; margin-bottom: 40px; }
     .header-icon {
-      width: 64px;
-      height: 64px;
-      margin: 0 auto 16px;
+      width: 64px; height: 64px; margin: 0 auto 16px;
       background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      box-shadow: 0 8px 32px rgba(79, 172, 254, 0.3);
+      border-radius: 20px; display: flex; align-items: center; justify-content: center;
+      font-size: 28px; box-shadow: 0 8px 32px rgba(79,172,254,0.3);
     }
+    .header h1 { font-size: 28px; font-weight: 900; color: var(--text-primary); letter-spacing: 2px; margin-bottom: 8px; }
+    .header p { font-size: 14px; color: var(--text-secondary); font-weight: 300; }
 
-    .header h1 {
-      font-size: 28px;
-      font-weight: 900;
-      color: var(--text-primary);
-      letter-spacing: 2px;
-      margin-bottom: 8px;
-    }
-
-    .header p {
-      font-size: 14px;
-      color: var(--text-secondary);
-      font-weight: 300;
-    }
-
-    .form-group {
-      margin-bottom: 24px;
-    }
-
+    .form-group { margin-bottom: 24px; }
     .form-label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      margin-bottom: 10px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
+      display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500;
+      color: var(--text-secondary); margin-bottom: 10px; letter-spacing: 1px; text-transform: uppercase;
     }
+    .form-label .icon { font-size: 16px; opacity: 0.8; }
 
-    .form-label .icon {
-      font-size: 16px;
-      opacity: 0.8;
-    }
-
-    .input-wrapper {
-      position: relative;
-    }
-
+    .input-wrapper { position: relative; }
     .input-wrapper input {
-      width: 100%;
-      background: var(--bg-input);
-      border: 2px solid rgba(255,255,255,0.06);
-      border-radius: 14px;
-      padding: 16px 50px 16px 20px;
-      font-size: 18px;
-      font-family: 'Noto Sans TC', sans-serif;
-      font-weight: 500;
-      color: var(--text-primary);
-      outline: none;
-      transition: border-color 0.3s, box-shadow 0.3s;
+      width: 100%; background: var(--bg-input); border: 2px solid rgba(255,255,255,0.06);
+      border-radius: 14px; padding: 16px 50px 16px 20px; font-size: 18px;
+      font-family: 'Noto Sans TC', sans-serif; font-weight: 500; color: var(--text-primary);
+      outline: none; transition: border-color 0.3s, box-shadow 0.3s;
     }
-
-    .input-wrapper input::placeholder {
-      color: rgba(255,255,255,0.2);
-      font-weight: 300;
-    }
-
+    .input-wrapper input::placeholder { color: rgba(255,255,255,0.2); font-weight: 300; }
     .input-wrapper input:focus {
       border-color: var(--accent-blue);
-      box-shadow: 0 0 0 4px rgba(79, 172, 254, 0.15), 0 0 20px rgba(79, 172, 254, 0.1);
+      box-shadow: 0 0 0 4px rgba(79,172,254,0.15), 0 0 20px rgba(79,172,254,0.1);
     }
-
+    .input-wrapper input.input-error {
+      border-color: var(--toast-error);
+      box-shadow: 0 0 0 4px rgba(255,23,68,0.15);
+    }
+    .input-wrapper input.input-valid { border-color: var(--result-normal); }
     .input-wrapper .unit {
-      position: absolute;
-      right: 18px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 15px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      pointer-events: none;
+      position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
+      font-size: 15px; font-weight: 500; color: var(--text-secondary); pointer-events: none;
     }
+    .input-hint { font-size: 11px; color: var(--text-secondary); margin-top: 6px; opacity: 0.7; }
+    .input-hint.error { color: var(--toast-error); opacity: 1; }
 
     .calc-btn {
-      width: 100%;
-      padding: 18px;
-      margin-top: 8px;
-      border: none;
-      border-radius: 14px;
-      font-size: 17px;
-      font-family: 'Noto Sans TC', sans-serif;
-      font-weight: 700;
-      letter-spacing: 3px;
-      cursor: pointer;
+      width: 100%; padding: 18px; margin-top: 8px; border: none; border-radius: 14px;
+      font-size: 17px; font-family: 'Noto Sans TC', sans-serif; font-weight: 700;
+      letter-spacing: 3px; cursor: pointer;
       background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-      color: white;
-      box-shadow: 0 8px 30px rgba(79, 172, 254, 0.35);
-      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
-      text-transform: uppercase;
+      color: white; box-shadow: 0 8px 30px rgba(79,172,254,0.35);
+      transition: transform 0.2s, box-shadow 0.2s; text-transform: uppercase;
     }
+    .calc-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(79,172,254,0.45); }
+    .calc-btn:active { transform: translateY(0); }
 
-    .calc-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 40px rgba(79, 172, 254, 0.45);
-    }
+    .result-section { margin-top: 32px; display: none; animation: fadeUp 0.5s ease; }
+    .result-section.show { display: block; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-    .calc-btn:active {
-      transform: translateY(0);
-    }
-
-    .result-section {
-      margin-top: 32px;
-      display: none;
-      animation: fadeUp 0.5s ease;
-    }
-
-    .result-section.show {
-      display: block;
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .result-card {
-      border-radius: 18px;
-      padding: 28px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-
+    .result-card { border-radius: 18px; padding: 28px; text-align: center; position: relative; overflow: hidden; }
     .result-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: 18px;
-      padding: 2px;
+      content: ''; position: absolute; inset: 0; border-radius: 18px; padding: 2px;
       background: linear-gradient(135deg, var(--result-color), transparent 60%);
       -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
       mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      opacity: 0.6;
+      -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0.6;
     }
-
-    .result-card.under { --result-color: var(--result-under); background: rgba(0, 198, 255, 0.08); }
-    .result-card.normal { --result-color: var(--result-normal); background: rgba(0, 230, 118, 0.08); }
-    .result-card.over { --result-color: var(--result-over); background: rgba(255, 145, 0, 0.08); }
-    .result-card.obese { --result-color: var(--result-obese); background: rgba(255, 23, 68, 0.08); }
+    .result-card.under { --result-color: var(--result-under); background: rgba(0,198,255,0.08); }
+    .result-card.normal { --result-color: var(--result-normal); background: rgba(0,230,118,0.08); }
+    .result-card.over { --result-color: var(--result-over); background: rgba(255,145,0,0.08); }
+    .result-card.obese { --result-color: var(--result-obese); background: rgba(255,23,68,0.08); }
 
     .bmi-number {
-      font-size: 72px;
-      font-weight: 900;
-      line-height: 1;
-      margin-bottom: 8px;
+      font-size: 72px; font-weight: 900; line-height: 1; margin-bottom: 8px;
       background: linear-gradient(135deg, var(--result-color), rgba(255,255,255,0.8));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
+    .bmi-label { font-size: 13px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase; color: var(--result-color); margin-bottom: 4px; }
+    .bmi-category { font-size: 20px; font-weight: 700; color: var(--result-color); margin-bottom: 20px; }
 
-    .bmi-label {
-      font-size: 13px;
-      font-weight: 500;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: var(--result-color);
-      margin-bottom: 4px;
-    }
-
-    .bmi-category {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--result-color);
-      margin-bottom: 20px;
-    }
-
-    .bmi-bar-wrapper {
-      margin-top: 16px;
-    }
-
-    .bmi-bar-labels {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 6px;
-    }
-
-    .bmi-bar-labels span {
-      font-size: 11px;
-      color: var(--text-secondary);
-      font-weight: 400;
-    }
-
-    .bmi-bar {
-      height: 8px;
-      border-radius: 4px;
-      background: rgba(255,255,255,0.06);
-      position: relative;
-      overflow: hidden;
-    }
-
+    .bmi-bar-wrapper { margin-top: 16px; }
+    .bmi-bar-labels { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .bmi-bar-labels span { font-size: 11px; color: var(--text-secondary); font-weight: 400; }
+    .bmi-bar { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.06); position: relative; overflow: hidden; }
     .bmi-bar-fill {
-      height: 100%;
-      border-radius: 4px;
+      height: 100%; border-radius: 4px;
       background: linear-gradient(90deg, var(--result-color), rgba(255,255,255,0.5));
-      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-      width: 0%;
+      transition: width 0.8s cubic-bezier(0.4,0,0.2,1); width: 0%;
     }
-
     .bmi-bar-marker {
-      position: absolute;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: white;
-      border: 3px solid var(--result-color);
-      box-shadow: 0 0 12px var(--result-color);
-      transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-      left: 0%;
+      position: absolute; top: 50%; transform: translate(-50%,-50%);
+      width: 16px; height: 16px; border-radius: 50%; background: white;
+      border: 3px solid var(--result-color); box-shadow: 0 0 12px var(--result-color);
+      transition: left 0.8s cubic-bezier(0.4,0,0.2,1); left: 0%;
     }
 
     .reset-btn {
-      margin-top: 20px;
-      width: 100%;
-      padding: 12px;
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 10px;
-      background: transparent;
-      color: var(--text-secondary);
-      font-size: 14px;
-      font-family: 'Noto Sans TC', sans-serif;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      letter-spacing: 2px;
+      margin-top: 20px; width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; background: transparent; color: var(--text-secondary);
+      font-size: 14px; font-family: 'Noto Sans TC', sans-serif; font-weight: 500;
+      cursor: pointer; transition: all 0.2s; letter-spacing: 2px;
     }
+    .reset-btn:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); border-color: rgba(255,255,255,0.2); }
 
-    .reset-btn:hover {
-      background: rgba(255,255,255,0.05);
-      color: var(--text-primary);
-      border-color: rgba(255,255,255,0.2);
-    }
-
-    .ranges {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 4px;
-      margin-top: 16px;
-    }
-
-    .range-item {
-      text-align: center;
-      padding: 8px 4px;
-      border-radius: 8px;
-      font-size: 11px;
-      font-weight: 500;
-    }
-
-    .range-item span {
-      display: block;
-      font-size: 13px;
-      font-weight: 700;
-      margin-bottom: 2px;
-    }
-
+    .ranges { display: grid; grid-template-columns: repeat(4,1fr); gap: 4px; margin-top: 16px; }
+    .range-item { text-align: center; padding: 8px 4px; border-radius: 8px; font-size: 11px; font-weight: 500; }
+    .range-item span { display: block; font-size: 13px; font-weight: 700; margin-bottom: 2px; }
     .range-item.under { color: var(--result-under); background: rgba(0,198,255,0.08); }
     .range-item.normal { color: var(--result-normal); background: rgba(0,230,118,0.08); }
     .range-item.over { color: var(--result-over); background: rgba(255,145,0,0.08); }
@@ -365,53 +182,59 @@
       .card { padding: 32px 24px; }
       .header h1 { font-size: 22px; }
       .bmi-number { font-size: 56px; }
-      .ranges { grid-template-columns: repeat(2, 1fr); }
+      .ranges { grid-template-columns: repeat(2,1fr); }
     }
   </style>
 </head>
 <body>
+  <div class="toast-container" id="toastContainer" role="alert" aria-live="polite" aria-atomic="true"></div>
+
   <div class="container">
     <div class="card">
       <div class="header">
-        <div class="header-icon">⚖️</div>
+        <div class="header-icon" aria-hidden="true">⚖️</div>
         <h1>BMI 計算機</h1>
         <p>了解您的身體質量指數</p>
       </div>
 
       <div class="form-group">
-        <div class="form-label">
-          <span class="icon">📏</span> 身高
-        </div>
+        <label for="height" class="form-label">
+          <span class="icon" aria-hidden="true">📏</span> 身高
+        </label>
         <div class="input-wrapper">
-          <input type="number" id="height" placeholder="170" min="50" max="250" step="0.1">
-          <span class="unit">cm</span>
+          <input type="number" id="height" name="height" placeholder="170"
+            min="50" max="300" step="0.1"
+            aria-label="身高（公分）" aria-describedby="heightHint"
+            inputmode="decimal" required>
+          <span class="unit" aria-hidden="true">cm</span>
         </div>
+        <p class="input-hint" id="heightHint" aria-live="polite">身高：50–300 cm</p>
       </div>
 
       <div class="form-group">
-        <div class="form-label">
-          <span class="icon">⚡</span> 體重
-        </div>
+        <label for="weight" class="form-label">
+          <span class="icon" aria-hidden="true">⚡</span> 體重
+        </label>
         <div class="input-wrapper">
-          <input type="number" id="weight" placeholder="65" min="10" max="300" step="0.1">
-          <span class="unit">kg</span>
+          <input type="number" id="weight" name="weight" placeholder="65"
+            min="10" max="500" step="0.1"
+            aria-label="體重（公斤）" aria-describedby="weightHint"
+            inputmode="decimal" required>
+          <span class="unit" aria-hidden="true">kg</span>
         </div>
+        <p class="input-hint" id="weightHint" aria-live="polite">體重：10–500 kg</p>
       </div>
 
-      <button class="calc-btn" id="calcBtn">計算 BMI</button>
+      <button class="calc-btn" id="calcBtn" aria-label="計算BMI">計算 BMI</button>
 
-      <div class="result-section" id="resultSection">
-        <div class="result-card" id="resultCard">
+      <div class="result-section" id="resultSection" aria-live="polite">
+        <div class="result-card" id="resultCard" role="status">
           <div class="bmi-label">BMI</div>
-          <div class="bmi-number" id="bmiNumber">--</div>
-          <div class="bmi-category" id="bmiCategory">--</div>
-
+          <div class="bmi-number" id="bmiNumber" aria-atomic="true">--</div>
+          <div class="bmi-category" id="bmiCategory" aria-atomic="true">--</div>
           <div class="bmi-bar-wrapper">
             <div class="bmi-bar-labels">
-              <span>過輕</span>
-              <span>正常</span>
-              <span>過重</span>
-              <span>肥胖</span>
+              <span>過輕</span><span>正常</span><span>過重</span><span>肥胖</span>
             </div>
             <div class="bmi-bar">
               <div class="bmi-bar-fill" id="bmiBarFill"></div>
@@ -419,105 +242,102 @@
             </div>
           </div>
         </div>
-
         <div class="ranges">
           <div class="range-item under"><span>&lt;18.5</span>過輕</div>
           <div class="range-item normal"><span>18.5-24</span>正常</div>
           <div class="range-item over"><span>24-27</span>過重</div>
           <div class="range-item obese"><span>&gt;27</span>肥胖</div>
         </div>
-
-        <button class="reset-btn" id="resetBtn">重新計算</button>
+        <button class="reset-btn" id="resetBtn" aria-label="重新計算">重新計算</button>
       </div>
     </div>
   </div>
 
   <script>
-    const heightInput = document.getElementById('height');
-    const weightInput = document.getElementById('weight');
-    const calcBtn = document.getElementById('calcBtn');
-    const resultSection = document.getElementById('resultSection');
-    const resultCard = document.getElementById('resultCard');
-    const bmiNumber = document.getElementById('bmiNumber');
-    const bmiCategory = document.getElementById('bmiCategory');
-    const bmiBarFill = document.getElementById('bmiBarFill');
-    const bmiBarMarker = document.getElementById('bmiBarMarker');
-    const resetBtn = document.getElementById('resetBtn');
+    var heightInput = document.getElementById('height');
+    var weightInput = document.getElementById('weight');
+    var calcBtn = document.getElementById('calcBtn');
+    var resultSection = document.getElementById('resultSection');
+    var resultCard = document.getElementById('resultCard');
+    var bmiNumber = document.getElementById('bmiNumber');
+    var bmiCategory = document.getElementById('bmiCategory');
+    var bmiBarFill = document.getElementById('bmiBarFill');
+    var bmiBarMarker = document.getElementById('bmiBarMarker');
+    var resetBtn = document.getElementById('resetBtn');
+    var toastContainer = document.getElementById('toastContainer');
+    var heightHint = document.getElementById('heightHint');
+    var weightHint = document.getElementById('weightHint');
 
-    // Security: Rate limiting & debounce
-    let lastCalcTime = 0;
-    const RATE_LIMIT_MS = 1000; // 1 second between calls
-    let debounceTimer = null;
-    const DEBOUNCE_MS = 300;
+    var HEIGHT_MIN = 50, HEIGHT_MAX = 300;
+    var WEIGHT_MIN = 10, WEIGHT_MAX = 500;
+    var toastTimeout = null;
 
-    // Security: Max bounds
-    const MAX_HEIGHT = 300; // cm
-    const MAX_WEIGHT = 500; // kg
-
-    // Security: Toast system (replaces alert())
-    function showToast(message, type = 'error') {
-      const existing = document.getElementById('toast');
-      if (existing) existing.remove();
-
-      const toast = document.createElement('div');
-      toast.id = 'toast';
-      toast.textContent = message;
-      toast.style.cssText = `
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: ${type === 'error' ? '#ff1744' : '#00e676'};
-        color: white;
-        padding: 14px 24px;
-        border-radius: 10px;
-        font-size: 14px;
-        font-weight: 500;
-        z-index: 9999;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-        animation: toastIn 0.3s ease;
-      `;
-      document.body.appendChild(toast);
-      setTimeout(() => {
-        toast.style.animation = 'toastOut 0.3s ease forwards';
-        setTimeout(() => toast.remove(), 300);
-      }, 2500);
+    function showToast(message, type) {
+      type = type || 'error';
+      var toast = document.createElement('div');
+      toast.className = 'toast toast-' + type;
+      toast.innerHTML =
+        '<span class="toast-icon" aria-hidden="true">' + (type === 'error' ? '⚠️' : '✅') + '</span>' +
+        '<span class="toast-message">' + message + '</span>';
+      toastContainer.appendChild(toast);
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(function() {
+        toast.classList.add('toast-out');
+        toast.addEventListener('animationend', function() { toast.remove(); });
+      }, 3500);
     }
 
-    // Inject toast animation styles
-    const toastStyle = document.createElement('style');
-    toastStyle.textContent = `
-      @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
-      @keyframes toastOut { from { opacity: 1; transform: translateX(-50%) translateY(0); } to { opacity: 0; transform: translateX(-50%) translateY(-20px); } }
-    `;
-    document.head.appendChild(toastStyle);
+    function validateField(input, type) {
+      var value = input.value.trim();
+      var hint = type === 'height' ? heightHint : weightHint;
+      var min = type === 'height' ? HEIGHT_MIN : WEIGHT_MIN;
+      var max = type === 'height' ? HEIGHT_MAX : WEIGHT_MAX;
+      var unit = type === 'height' ? ' cm' : ' kg';
 
-    function sanitizeInput(value) {
-      // Remove non-numeric characters except decimal point and minus
-      const sanitized = String(value).replace(/[^0-9.\-]/g, '');
-      return parseFloat(sanitized);
+      if (!value) {
+        input.classList.remove('input-valid', 'input-error');
+        hint.classList.remove('error');
+        hint.textContent = (type === 'height' ? '身高：' : '體重：') + min + '–' + max + unit;
+        return false;
+      }
+      var num = parseFloat(value);
+      if (isNaN(num)) {
+        input.classList.add('input-error');
+        input.classList.remove('input-valid');
+        hint.classList.add('error');
+        hint.textContent = '請輸入數字';
+        return false;
+      }
+      if (num < min || num > max) {
+        input.classList.add('input-error');
+        input.classList.remove('input-valid');
+        hint.classList.add('error');
+        hint.textContent = '請輸入有效範圍（' + min + '–' + max + '）';
+        return false;
+      }
+      input.classList.remove('input-error');
+      input.classList.add('input-valid');
+      hint.classList.remove('error');
+      hint.textContent = (type === 'height' ? '身高：' : '體重：') + min + '–' + max + unit;
+      return true;
     }
 
-    function validateInput(height, weight) {
-      // Check positivity
-      if (!height || height <= 0 || !weight || weight <= 0) {
-        return { valid: false, error: '請輸入有效的身高和體重' };
-      }
-      // Check max bounds
-      if (height > MAX_HEIGHT) {
-        return { valid: false, error: `身高不可超過 ${MAX_HEIGHT} cm` };
-      }
-      if (weight > MAX_WEIGHT) {
-        return { valid: false, error: `體重不可超過 ${MAX_WEIGHT} kg` };
-      }
-      return { valid: true };
-    }
+    heightInput.addEventListener('input', function() {
+      heightInput.value = heightInput.value.replace(/[^0-9.]/g, '');
+      validateField(heightInput, 'height');
+    });
+    weightInput.addEventListener('input', function() {
+      weightInput.value = weightInput.value.replace(/[^0-9.]/g, '');
+      validateField(weightInput, 'weight');
+    });
+    heightInput.addEventListener('blur', function() { validateField(heightInput, 'height'); });
+    weightInput.addEventListener('blur', function() { validateField(weightInput, 'weight'); });
 
     function getCategory(bmi) {
-      if (bmi < 18.5) return { label: '體重過輕', class: 'under', color: '#00c6ff' };
-      if (bmi < 24) return { label: '體重正常', class: 'normal', color: '#00e676' };
-      if (bmi < 27) return { label: '體重過重', class: 'over', color: '#ff9100' };
-      return { label: '肥胖', class: 'obese', color: '#ff1744' };
+      if (bmi < 18.5) return { label: '體重過輕', cls: 'under', color: '#00c6ff' };
+      if (bmi < 24) return { label: '體重正常', cls: 'normal', color: '#00e676' };
+      if (bmi < 27) return { label: '體重過重', cls: 'over', color: '#ff9100' };
+      return { label: '肥胖', cls: 'obese', color: '#ff1744' };
     }
 
     function getBarPosition(bmi) {
@@ -527,69 +347,78 @@
     }
 
     function calculate() {
-      const now = Date.now();
+      var hVal = heightInput.value.trim();
+      var wVal = weightInput.value.trim();
 
-      // Security: Rate limiting
-      if (now - lastCalcTime < RATE_LIMIT_MS) {
-        showToast('請稍後再試', 'error');
+      if (!hVal) {
+        showToast('請輸入身高');
+        heightInput.classList.add('input-error');
+        heightInput.focus();
         return;
       }
-      lastCalcTime = now;
-
-      // Security: Sanitize inputs
-      const rawHeight = heightInput.value;
-      const rawWeight = weightInput.value;
-
-      const h = sanitizeInput(rawHeight);
-      const w = sanitizeInput(rawWeight);
-
-      // Validate inputs
-      const validation = validateInput(h, w);
-      if (!validation.valid) {
-        showToast(validation.error, 'error');
+      if (!wVal) {
+        showToast('請輸入體重');
+        weightInput.classList.add('input-error');
+        weightInput.focus();
         return;
       }
 
-      const heightInM = h / 100;
-      const bmi = w / (heightInM * heightInM);
-      const roundedBmi = Math.round(bmi * 10) / 10;
-      const cat = getCategory(bmi);
+      var h = parseFloat(hVal);
+      var w = parseFloat(wVal);
 
-      resultCard.className = 'result-card ' + cat.class;
+      if (isNaN(h) || h < HEIGHT_MIN || h > HEIGHT_MAX) {
+        showToast('身高需在 ' + HEIGHT_MIN + '–' + HEIGHT_MAX + ' cm 之間');
+        heightInput.classList.add('input-error');
+        heightInput.focus();
+        return;
+      }
+      if (isNaN(w) || w < WEIGHT_MIN || w > WEIGHT_MAX) {
+        showToast('體重需在 ' + WEIGHT_MIN + '–' + WEIGHT_MAX + ' kg 之間');
+        weightInput.classList.add('input-error');
+        weightInput.focus();
+        return;
+      }
+
+      var heightInM = h / 100;
+      var bmi = w / (heightInM * heightInM);
+      var roundedBmi = Math.round(bmi * 10) / 10;
+      var cat = getCategory(bmi);
+
+      resultCard.className = 'result-card ' + cat.cls;
       bmiNumber.textContent = roundedBmi;
       bmiCategory.textContent = cat.label;
 
-      const barPos = getBarPosition(bmi);
-
-      requestAnimationFrame(() => {
+      var barPos = getBarPosition(bmi);
+      requestAnimationFrame(function() {
         bmiBarFill.style.width = barPos + '%';
         bmiBarMarker.style.left = barPos + '%';
       });
 
       resultSection.classList.add('show');
-    }
-
-    function debouncedCalculate() {
-      // Security: Debounce
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(calculate, DEBOUNCE_MS);
+      showToast('BMI 為 ' + roundedBmi + '（' + cat.label + '）', 'success');
     }
 
     function reset() {
       heightInput.value = '';
       weightInput.value = '';
+      heightInput.classList.remove('input-error', 'input-valid');
+      weightInput.classList.remove('input-error', 'input-valid');
+      heightHint.classList.remove('error');
+      weightHint.classList.remove('error');
+      heightHint.textContent = '身高：' + HEIGHT_MIN + '–' + HEIGHT_MAX + ' cm';
+      weightHint.textContent = '體重：' + WEIGHT_MIN + '–' + WEIGHT_MAX + ' kg';
       resultSection.classList.remove('show');
       bmiBarFill.style.width = '0%';
       bmiBarMarker.style.left = '0%';
       heightInput.focus();
     }
 
-    // Security: Debounced click handler
-    calcBtn.addEventListener('click', debouncedCalculate);
+    calcBtn.addEventListener('click', calculate);
     resetBtn.addEventListener('click', reset);
-
-    heightInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') weightInput.focus(); });
-    weightInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') debouncedCalculate(); });
+    heightInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') weightInput.focus(); });
+    weightInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') calculate(); });
+    heightInput.addEventListener('wheel', function(e) { e.preventDefault(); }, { passive: false });
+    weightInput.addEventListener('wheel', function(e) { e.preventDefault(); }, { passive: false });
   </script>
 </body>
 </html>
